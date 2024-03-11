@@ -12,9 +12,9 @@ import asyncio
 from websockets.sync.client import connect
 
 # percentage detection
-EYE_ASPECT_RATIO_TRESHOLD = 0.10
+EYE_ASPECT_RATIO_TRESHOLD = 0.17
 EYE_ASPECT_RATIO_CONSEC_FRAMES = 5
-MOUTH_ASPECT_RATIO_TRESHOLD = 95
+MOUTH_ASPECT_RATIO_TRESHOLD = 55
 MOUTH_ASPECT_RATIO_CONSEC_FRAMES = 15
 
 COUNTER_EYE = 0
@@ -91,7 +91,7 @@ def yawn_aspect_ratio(mouth):
 #     with open("frame1.jpg", "rb") as image_file:
 #         encoded_string = base64.b64encode(image_file.read())
 #         socket_connect(encoded_string)
-        
+
 class SocketTrigger:
     # import socketio
     # sio = socketio.Client()
@@ -104,14 +104,19 @@ class SocketTrigger:
     # sio = socketio.Client()
     
 
-    def hello(video):
-        with connect("wss://0gw901vv-3100.asse.devtunnels.ms/") as websocket:
-            cv2.imwrite("frame%d.jpg" % 1, video) 
-            with open("frame1.jpg", "rb") as image_file:
-                encoded_string = base64.b64encode(image_file.read())
-                websocket.send(encoded_string)
-                message = websocket.recv()
-                print(f"Received: {message}")
+    def save_image(image):
+        cv2.imwrite("./drow/drowImg%d.jpg" % 1, image)
+        # import requests
+        # url = 'http://file.api.wechat.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE'
+        # files = {'media': open('./nodeServer/drow/drowImg%d.jpg', 'rb')}
+        # requests.post(url, files=files) 
+        # with connect("wss://0gw901vv-3100.asse.devtunnels.ms/") as websocket:
+        #     cv2.imwrite("frame%d.jpg" % 1, video) 
+        #     with open("frame1.jpg", "rb") as image_file:
+        #         encoded_string = base64.b64encode(image_file.read())
+        #         websocket.send(encoded_string)
+        #         message = websocket.recv()
+        #         print(f"Received: {message}")
 
 # socket_connect('ok')
 
@@ -203,9 +208,8 @@ while video_capture.isOpened():
         cv2.drawContours(frame, [leftEyeHull], -1, (0,255,0), 1)
         cv2.drawContours(frame, [rightEyeHull], -1, (0,255,0), 1)
         cv2.drawContours(frame, [mouthHull], -1, (0,0,255), 1)
-        
-        strEyeRatio = str(math.floor(mouthAspectRatio * 10**2) / 10**2)
-        cv2.putText(frame, f'{strEyeRatio}', (250, 400), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,0,0), 2)
+        print(mouthAspectRatio)
+        cv2.putText(frame, f'{eyeAspectRatio}', (250, 400), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,0,0), 2)
         if eyeAspectRatio < EYE_ASPECT_RATIO_TRESHOLD:
             COUNTER_EYE += 1
             print(COUNTER_EYE)
@@ -215,7 +219,7 @@ while video_capture.isOpened():
         else:
             IS_EYE_CLOSE_5 = False
             COUNTER_EYE = 0
-            
+        
         if mouthAspectRatio > MOUTH_ASPECT_RATIO_TRESHOLD:
             COUNTER_MOUTH += 1
             if COUNTER_MOUTH >= MOUTH_ASPECT_RATIO_CONSEC_FRAMES:
@@ -231,7 +235,7 @@ while video_capture.isOpened():
             IS_DROWSINESS = False
         
         if IS_DROWSINESS:
-            # SocketTrigger.hello(image)
+            # SocketTrigger.save_image(image)
             cv2.putText(frame, 'Anda Ngantuk!', (250, 300), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,0,0), 2)
             
     cv2.imshow('frame', frame)

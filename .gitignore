@@ -1,2 +1,9 @@
 assets/
 .vscode/
+*.png
+*jpg
+*.avi
+*.mp4
+drow/
+*.html
+*copy*.*
