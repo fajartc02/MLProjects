@@ -8,8 +8,11 @@ import cv2
 import math
 import mediapipe as mp
 import base64
-import asyncio
+# import asyncio
 from websockets.sync.client import connect
+import json
+import datetime
+
 
 # percentage detection
 EYE_ASPECT_RATIO_TRESHOLD = 0.17
@@ -20,6 +23,7 @@ MOUTH_ASPECT_RATIO_CONSEC_FRAMES = 15
 COUNTER_EYE = 0
 COUNTER_MOUTH = 0
 
+
 IS_MOUTH_OPEN_15 = False
 IS_EYE_CLOSE_5 = False
 IS_DROWSINESS = False
@@ -28,7 +32,6 @@ face_cascade = cv2.CascadeClassifier('./assets/haarcascade_frontalface_default.x
 phone_cascade = cv2
 
 class poseDetector:
-
     def __init__(self, mode=False, modelComplexity=1, smLm=True, enaSeg=False, smSeg=True, minDetectConfi=0.5,
                  minTrackConfi=0.5):
         self.static_image_mode = mode
@@ -93,37 +96,24 @@ def yawn_aspect_ratio(mouth):
 #         socket_connect(encoded_string)
 
 class SocketTrigger:
-    # import socketio
-    # sio = socketio.Client()
-    # sio.connect('wss://0gw901vv-3100.asse.devtunnels.ms/', transports=['websocket'])
-    # sio.emit('message', 'test')
-    # print('my sid is', sio.sid)
-    
-    # import socketio
-
-    # sio = socketio.Client()
-    
-
     def save_image(image):
-        cv2.imwrite("./drow/drowImg%d.jpg" % 1, image)
-        # import requests
-        # url = 'http://file.api.wechat.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE'
-        # files = {'media': open('./nodeServer/drow/drowImg%d.jpg', 'rb')}
-        # requests.post(url, files=files) 
-        # with connect("wss://0gw901vv-3100.asse.devtunnels.ms/") as websocket:
-        #     cv2.imwrite("frame%d.jpg" % 1, video) 
-        #     with open("frame1.jpg", "rb") as image_file:
-        #         encoded_string = base64.b64encode(image_file.read())
-        #         websocket.send(encoded_string)
-        #         message = websocket.recv()
-        #         print(f"Received: {message}")
+
+        print('Reconnecting')
+        with connect("ws://103.190.28.211:3100?vehicle_id=MHKA6GJ3JRJ043647&device=jetson") as websocket:
+            cv2.imwrite("frame%d.jpg" % 1, image) 
+            with open("frame1.jpg", "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read())
+                
+                websocket.send(encoded_string)
+                message = websocket.recv()
+                print(f"Received: {message}")
 
 # socket_connect('ok')
 
 
 
 detector = dlib.get_frontal_face_detector()
-poseDetector = poseDetector()
+# poseDetector = poseDetector()
 
 predictor = dlib.shape_predictor('./assets/shape_predictor_68_face_landmarks.dat')
 
@@ -135,17 +125,17 @@ predictor = dlib.shape_predictor('./assets/shape_predictor_68_face_landmarks.dat
 
 # video_capture = cv2.VideoCapture(video_file_path) # video history
 video_capture = cv2.VideoCapture(0) # video live webcam
+# Get the current time including seconds
+init_time = datetime.datetime.now()
+
+# Extract the seconds
+init_minute = init_time.minute - 1
 
 while video_capture.isOpened():
     ret, frame = video_capture.read()
     # get_image_video(frame)
     image = frame
     # cv2.imwrite("frame_not_preprocessing.jpg", image)
-    
-    start_time = time.time()
-    
-    if time.time() - start_time > 15:  # Check if 15 seconds have elapsed
-        break
     frame = cv2.flip(frame, 1)
     
     # IMAGE PREPROCESSING
@@ -234,8 +224,18 @@ while video_capture.isOpened():
         else:
             IS_DROWSINESS = False
         
+        # Get the current time including seconds
+        current_time = datetime.datetime.now()
+
+        # Extract the seconds
+        minuteCount = current_time.minute
+        print('minuteCount', minuteCount)
+        print('init_minute', init_minute)
         if IS_DROWSINESS:
-            # SocketTrigger.save_image(image)
+            if(minuteCount != init_minute):
+                init_minute = minuteCount
+                SocketTrigger.save_image(image)
+                
             cv2.putText(frame, 'Anda Ngantuk!', (250, 300), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,0,0), 2)
             
     cv2.imshow('frame', frame)
@@ -244,5 +244,3 @@ while video_capture.isOpened():
     
 video_capture.release()
 cv2.destroyAllWindows()    
-        
-    

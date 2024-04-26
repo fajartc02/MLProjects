@@ -28,8 +28,8 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 # Initialize dlib face detector and shape predictor (Drowsy)
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+predictor = dlib.shape_predictor('./assets/shape_predictor_68_face_landmarks.dat')
+face_cascade = cv2.CascadeClassifier('./assets/haarcascade_frontalface_default.xml')
 (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS['left_eye']
 (rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS['right_eye']
 (mStart, mEnd) = face_utils.FACIAL_LANDMARKS_IDXS['mouth']
@@ -183,9 +183,9 @@ while cap.isOpened():
             y_angle = angles[1] * 360
 
             # See where the user's head is tilting
-            if y_angle < -28:
+            if y_angle < -10:
                 head_pose_text = "Looking Left"
-            elif y_angle > 28:
+            elif y_angle > 10:
                 head_pose_text = "Looking Right"
             elif x_angle < -10:
                 head_pose_text = "Looking Down"

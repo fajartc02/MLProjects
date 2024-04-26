@@ -15,8 +15,8 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 cap = cv2.VideoCapture(0)
 
 # Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('Trial13March.avi', fourcc, 20.0, (640, 480))
+# fourcc = cv2.VideoWriter_fourcc(*'XVID')
+# out = cv2.VideoWriter('Trial13March.avi', fourcc, 20.0, (640, 480))
 
 start_time = time.time()
 
